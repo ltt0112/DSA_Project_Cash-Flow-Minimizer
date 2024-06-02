@@ -1,6 +1,3 @@
-Dưới đây là nội dung chi tiết bạn có thể đưa vào file README để trình bày về việc nghiên cứu và áp dụng thuật toán tối ưu hóa dòng tiền giữa các cá nhân sử dụng ví điện tử:
-
----
 
 # Tối Ưu Hóa Dòng Tiền Giữa Các Cá Nhân Sử Dụng Ví Điện Tử
 
