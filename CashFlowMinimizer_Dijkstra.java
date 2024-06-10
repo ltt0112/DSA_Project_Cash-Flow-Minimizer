@@ -46,13 +46,15 @@ public class CashFlowMinimizer_Dijkstra {
             Pair<Integer, Integer> current = pq.poll();
             int currentPerson = current.getValue();
 
+
             for (int i = 0; i < numPersons; i++) {
                 if (i != currentPerson && listOfNetAmounts[i].netAmount != 0) {
                     int newDist = dist[currentPerson] + Math.abs(listOfNetAmounts[i].netAmount);
                     if (newDist < dist[i]) {
                         dist[i] = newDist;
                         pq.add(new Pair<>(newDist, i));
-                        ansGraph.get(currentPerson).set(i, new Pair<>(Math.abs(listOfNetAmounts[i].netAmount), listOfNetAmounts[i].types.iterator().next()));
+                        //ansGraph.get(currentPerson).set(i, new Pair<>(Math.abs(listOfNetAmounts[i].netAmount), listOfNetAmounts[i].types.iterator().next()));
+                        ansGraph.get(currentPerson).set(i, new Pair<>(listOfNetAmounts[i].netAmount, listOfNetAmounts[i].types.iterator().next()));
                     }
                 }
             }
@@ -66,7 +68,12 @@ public class CashFlowMinimizer_Dijkstra {
                 if (i == j) continue;
 
                 if (ansGraph.get(i).get(j).getKey() != 0) {
-                    System.out.println(input[i].name + " pays Rs " + ansGraph.get(i).get(j).getKey() + " to " + input[j].name + " via " + ansGraph.get(i).get(j).getValue());
+                    if (ansGraph.get(i).get(j).getKey() < 0){
+                        System.out.println(input[j].name + " pays Rs " + -1*ansGraph.get(i).get(j).getKey() + " to " + input[i].name + " via " + ansGraph.get(i).get(j).getValue());
+                    }
+                    else {
+                        System.out.println(input[i].name + " pays Rs " + ansGraph.get(i).get(j).getKey() + " to " + input[j].name + " via " + ansGraph.get(i).get(j).getValue());
+                    }
                 }
             }
         }
@@ -90,6 +97,12 @@ public class CashFlowMinimizer_Dijkstra {
             for (int j = 0; j < numPersons; j++) {
                 amount += (-1) * graph[b][j];
             }
+//            for (int i = 0; i < numPersons; i++) {
+//                if (i != b) {
+//                    amount -= graph[i][b];
+//                    amount += graph[b][i];
+//                }
+//            }
 
             listOfNetAmounts[b].netAmount = amount;
         }
@@ -100,6 +113,8 @@ public class CashFlowMinimizer_Dijkstra {
         }
 
         dijkstra(numPersons, listOfNetAmounts, ansGraph);
+
+//        adjustBalances(numPersons, listOfNetAmounts, ansGraph);
 
         printAns(ansGraph, numPersons, input);
     }
