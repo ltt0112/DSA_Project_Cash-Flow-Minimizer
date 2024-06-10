@@ -1,0 +1,226 @@
+import java.util.*;
+
+class Person {
+    public String name;
+    public int netAmount;
+    public Set<String> types;
+
+    public Person() {
+        this.types = new HashSet<>();
+    }
+}
+
+class Pair<K, V> {
+    private K key;
+    private V value;
+
+    public Pair(K key, V value) {
+        this.key = key;
+        this.value = value;
+    }
+
+    public K getKey() {
+        return key;
+    }
+
+    public void setKey(K key) {
+        this.key = key;
+    }
+
+    public V getValue() {
+        return value;
+    }
+
+    public void setValue(V value) {
+        this.value = value;
+    }
+}
+
+public class CashFlowMinimizer {
+
+    public static void bellmanFord(int numPersons, Person[] listOfNetAmounts, List<List<Pair<Integer, String>>> ansGraph) {
+        int[] dist = new int[numPersons];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[0] = 0; // Start from the "World Person"
+
+        for (int i = 0; i < numPersons - 1; i++) {
+            for (int u = 0; u < numPersons; u++) {
+                for (int v = 0; v < numPersons; v++) {
+                    if (u != v && listOfNetAmounts[v].netAmount != 0 && dist[u] != Integer.MAX_VALUE) {
+                        int newDist = dist[u] + Math.abs(listOfNetAmounts[v].netAmount);
+                        if (newDist < dist[v]) {
+                            dist[v] = newDist;
+//                            ansGraph.get(u).set(v, new Pair<>(Math.abs(listOfNetAmounts[v].netAmount), listOfNetAmounts[v].types.iterator().next()));
+                            ansGraph.get(u).set(v, new Pair<>(listOfNetAmounts[v].netAmount, listOfNetAmounts[v].types.iterator().next()));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Check for negative-weight cycles
+        for (int u = 0; u < numPersons; u++) {
+            for (int v = 0; v < numPersons; v++) {
+                if (u != v && listOfNetAmounts[v].netAmount != 0 && dist[u] != Integer.MAX_VALUE) {
+                    if (dist[u] + Math.abs(listOfNetAmounts[v].netAmount) < dist[v]) {
+                        System.out.println("Graph contains a negative-weight cycle");
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    public static boolean bellmanFord(int numPersons, Person[] listOfNetAmounts) {
+        int[] dist = new int[numPersons];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[0] = 0; // Start from the "World Person"
+
+        for (int i = 0; i < numPersons - 1; i++) {
+            for (int u = 0; u < numPersons; u++) {
+                for (int v = 0; v < numPersons; v++) {
+                    if (u != v && listOfNetAmounts[v].netAmount != 0 && dist[u] != Integer.MAX_VALUE) {
+                        int newDist = dist[u] + listOfNetAmounts[v].netAmount;
+                        if (newDist < dist[v]) {
+                            dist[v] = newDist;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Check for negative-weight cycles
+        for (int u = 0; u < numPersons; u++) {
+            for (int v = 0; v < numPersons; v++) {
+                if (u != v && listOfNetAmounts[v].netAmount != 0 && dist[u] != Integer.MAX_VALUE) {
+                    int newDist = dist[u] + listOfNetAmounts[v].netAmount;
+                    if (newDist < dist[v]) {
+                        return true; // Negative-weight cycle detected
+                    }
+                }
+            }
+        }
+
+        return false; // No negative-weight cycle found
+    }
+
+    public static void printAns(List<List<Pair<Integer, String>>> ansGraph, int numPersons, Person[] input) {
+        System.out.println("\nThe transactions for minimum cash flow are as follows:\n");
+        for (int i = 0; i < numPersons; i++) {
+            for (int j = 0; j < numPersons; j++) {
+                if (i == j) continue;
+
+                if (ansGraph.get(i).get(j).getKey() != 0) {
+                    if (ansGraph.get(i).get(j).getKey() < 0){
+                        System.out.println(input[j].name + " pays Rs " + -1*ansGraph.get(i).get(j).getKey() + " to " + input[i].name + " via " + ansGraph.get(i).get(j).getValue());
+                    }
+                    else {
+                        System.out.println(input[i].name + " pays Rs " + ansGraph.get(i).get(j).getKey() + " to " + input[j].name + " via " + ansGraph.get(i).get(j).getValue());
+                    }
+                }
+            }
+        }
+        System.out.println();
+    }
+
+    public static void minimizeCashFlow(int numPersons, Person[] input, Map<String, Integer> indexOf, int numTransactions, int[][] graph, int maxNumTypes) {
+        Person[] listOfNetAmounts = new Person[numPersons];
+
+        for (int b = 0; b < numPersons; b++) {
+            listOfNetAmounts[b] = new Person();
+            listOfNetAmounts[b].name = input[b].name;
+            listOfNetAmounts[b].types = new HashSet<>(input[b].types);
+
+            int amount = 0;
+
+            for (int i = 0; i < numPersons; i++) {
+                amount += graph[i][b];
+            }
+
+            for (int j = 0; j < numPersons; j++) {
+                amount += (-1) * graph[b][j];
+            }
+
+            listOfNetAmounts[b].netAmount = amount;
+        }
+
+        List<List<Pair<Integer, String>>> ansGraph = new ArrayList<>(numPersons);
+        for (int i = 0; i < numPersons; i++) {
+            ansGraph.add(new ArrayList<>(Collections.nCopies(numPersons, new Pair<>(0, ""))));
+        }
+        if(bellmanFord(numPersons, listOfNetAmounts)) {
+            System.out.println("Graph contains a negative-weight cycle");
+        }
+        bellmanFord(numPersons, listOfNetAmounts, ansGraph);
+
+        printAns(ansGraph, numPersons, input);
+    }
+
+    public static void main(String[] args) {
+        System.out.println("\n\t\t\t\t********************* Welcome to CASH FLOW MINIMIZER SYSTEM ***********************\n\n\n");
+        System.out.println("This system minimizes the number of transactions among multiple Persons in the different corners of the world that use different modes of payment. There is one world Person (with all payment modes) to act as an intermediary between Persons that have no common mode of payment.\n");
+        System.out.println("Enter the number of Persons participating in the transactions.");
+        Scanner imp = new Scanner(System.in);
+        int numPersons = imp.nextInt();
+
+        Person[] input = new Person[numPersons];
+        Map<String, Integer> indexOf = new HashMap<>();
+
+        System.out.println("Enter the details of the Persons and transactions as stated:");
+        System.out.println("Person name, number of payment modes it has, and the payment modes.");
+        System.out.println("Person name and payment modes should not contain spaces.");
+
+        int maxNumTypes = 0;
+        for (int i = 0; i < numPersons; i++) {
+            if (i == 0) {
+                System.out.print("Main Person: ");
+            } else {
+                System.out.print("Person " + i + ": ");
+            }
+            String name = imp.next();
+            input[i] = new Person();
+            input[i].name = name;
+            indexOf.put(name, i);
+
+            int numTypes = imp.nextInt();
+
+            if (i == 0) maxNumTypes = numTypes;
+
+            Set<String> types = new HashSet<>(numTypes);
+
+            for (int j = 0; j < numTypes; j++) {
+                types.add(imp.next());
+            }
+
+            input[i].types = types;
+        }
+
+        System.out.println("Enter the number of transactions.");
+        int numTransactions = imp.nextInt();
+
+        int[][] graph = new int[numPersons][numPersons];
+
+        System.out.println("Enter the details of the transactions as stated:");
+        System.out.println("Person name from which the transaction originates, Person name to which the transaction is made, and the amount.");
+
+        for (int i = 0; i < numTransactions; i++) {
+            String from = imp.next();
+            String to = imp.next();
+            int amount = imp.nextInt();
+
+            Integer fromIndex = indexOf.get(from);
+            Integer toIndex = indexOf.get(to);
+
+            if (fromIndex != null && toIndex != null) {
+                int fromIdx = fromIndex.intValue();
+                int toIdx = toIndex.intValue();
+                graph[fromIdx][toIdx] = amount;
+            } else {
+                System.out.println("Invalid Person names: " + from + ", " + to);
+            }
+        }
+
+        minimizeCashFlow(numPersons, input, indexOf, numTransactions, graph, maxNumTypes);
+
+        imp.close();
+    }
+}
