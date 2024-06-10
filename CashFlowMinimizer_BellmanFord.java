@@ -36,7 +36,7 @@ class Pair<K, V> {
     }
 }
 
-public class CashFlowMinimizer {
+public class CashFlowMinimizer_BellmanFord {
 
     public static void bellmanFord(int numPersons, Person[] listOfNetAmounts, List<List<Pair<Integer, String>>> ansGraph) {
         int[] dist = new int[numPersons];
